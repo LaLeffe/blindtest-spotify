@@ -1,13 +1,13 @@
 /*global swal*/
 
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import loading from './loading.svg';
-import './App.css';
-import Sound from 'react-sound';
-import Button from './Button';
+import React, { Component } from "react";
+import logo from "./logo.svg";
+import loading from "./loading.svg";
+import "./App.css";
+import Sound from "react-sound";
+import Button from "./Button";
 
-const apiToken = '<<Copiez le token de Spotify ici>>';
+const apiToken = "<<Copiez le token de Spotify ici>>";
 
 function shuffleArray(array) {
   let counter = array.length;
@@ -29,23 +29,41 @@ function getRandomNumber(x) {
 }
 
 class App extends Component {
-
   constructor() {
     super();
+    this.state = {
+      text: ""
+    };
+  }
+
+  componentDidMount() {
+    this.setState({
+      text: "Bonjour"
+    });
+
+    fetch('https://api.spotify.com/v1/me/tracks', {
+      method: 'GET',
+      headers: {
+        Authorization: 'Bearer ' + apiToken,
+      },
+    })
+      .then(response => response.json())
+      .then((data) => {
+        console.log("Réponse reçue ! Voilà ce que j'ai reçu : ", data);
+      })
   }
 
   render() {
     return (
       <div className="App">
         <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo"/>
-          <h1 className="App-title">Gros Nano ce soir !</h1>
+          <img src={logo} className="App-logo" alt="logo" />
+          <h1 className="App-title">{this.state.text}</h1>
         </header>
         <div className="App-images">
-          <p>AdR souschibres !</p>
+          <p>Re Test !</p>
         </div>
-        <div className="App-buttons">
-        </div>
+        <div className="App-buttons"></div>
       </div>
     );
   }
