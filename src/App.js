@@ -6,8 +6,11 @@ import loading from "./loading.svg";
 import "./App.css";
 import Sound from "react-sound";
 import Button from "./Button";
+import { AlbumCover } from "./AlbumCover";
 
-const apiToken = "<<Copiez le token de Spotify ici>>";
+const apiToken = "BQDb6m_S50n-u39Jf32N4rKwlcL2R1cCNs47ADeHfjhfbdok3NHw20JE-4yHVPRiq0YTlT3y72Z-kNPiszq_91K7XDO_ffPNL08a9EmLH5IOIMqkBsbh_sXxva2IFUhM2hdYgsM3sXnHcEMYB-jgQA";
+
+var musics = []
 
 function shuffleArray(array) {
   let counter = array.length;
@@ -32,13 +35,17 @@ class App extends Component {
   constructor() {
     super();
     this.state = {
-      text: ""
+      text: "",
+      songsLoaded: false,
+      musics: [],
+      currentTrack: {}
     };
   }
 
   componentDidMount() {
     this.setState({
-      text: "Bonjour"
+      text: "Bonjour",
+      timeout: setTimeout(() => this.selectNewTrack(), 10000)
     });
 
     fetch('https://api.spotify.com/v1/me/tracks', {
@@ -47,25 +54,83 @@ class App extends Component {
         Authorization: 'Bearer ' + apiToken,
       },
     })
-      .then(response => response.json())
+      .then((response) => response.json())
       .then((data) => {
-        console.log("Réponse reçue ! Voilà ce que j'ai reçu : ", data);
+        let ran = getRandomNumber(10)
+        this.setState({
+          musics: data['items'],
+          songsLoaded: true,
+          currentTrack: data['items'][ran].track
+        });
       })
   }
 
+  checkAnswer(id) {
+    if (id == this.state.currentTrack.id) {
+      clearTimeout(this.state.timeout)
+      swal('Bravo', 'Sous-titre', 'success')
+        .then(this.selectNewTrack())
+    }
+    else {
+      swal('Alerte !!', 'Ceci est une alerte', 'error')
+    }
+  }
+
+  selectNewTrack() {
+    let new_track = getRandomNumber(this.state.musics.length);
+    this.setState({
+      currentTrack: this.state.musics[new_track].track,
+      timeout: setTimeout(() => this.selectNewTrack(), 10000)
+    })
+  }
+
   render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">{this.state.text}</h1>
-        </header>
-        <div className="App-images">
-          <p>Re Test !</p>
+    if (this.state.songsLoaded) {
+      let songs_array = []
+      let second = getRandomNumber(this.state.musics.length)
+      let third = getRandomNumber(this.state.musics.length)
+      songs_array.push(this.state.currentTrack);
+      songs_array.push(this.state.musics[second].track)
+      songs_array.push(this.state.musics[third].track)
+      songs_array = shuffleArray(songs_array)
+      return (
+        <div className="App">
+          <header className="App-header">
+            <img src={logo} className="App-logo" alt="logo" />
+            <h1 className="App-title">{this.state.text}</h1>
+          </header>
+          <div className="App-images">
+            <Sound url={this.state.currentTrack.preview_url} playStatus={Sound.status.PLAYING} />
+            Il y a {this.state.musics.length} chansons
+            <p>Re Test !</p>
+            <h2>La première chanson : {this.state.musics[0]['track'].name}</h2>
+            <AlbumCover track={this.state.currentTrack} />
+          </div>
+          <div className="App-buttons">
+            {
+              songs_array.map(item => (
+                <Button onClick={() => this.checkAnswer(item.id)}>{item.name}</Button>
+              )
+              )}
+          </div>
         </div>
-        <div className="App-buttons"></div>
-      </div>
-    );
+      );
+    }
+    else {
+      return (
+        <div className="App">
+          <header className="App-header">
+            <img src={loading} className="App-loading" alt="loading" />
+            <h1 className="App-title">{this.state.text}</h1>
+          </header>
+          <div className="App-images">
+            <p>Loading</p>
+          </div>
+          <div className="App-buttons"></div>
+        </div>
+      );
+    }
+
   }
 }
 
